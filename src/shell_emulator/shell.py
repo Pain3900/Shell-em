@@ -5,7 +5,7 @@ import socket
 import sys
 
 from shell_emulator.commands import COMMANDS, CommandError, ExitRequest
-from shell_emulator.parser import ParseError, parse
+from shell_emulator.parse import ParseError, parse
 
 SHELL_NAME = "shell"
 HOME_MARK = "~"

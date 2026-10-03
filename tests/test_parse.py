@@ -2,7 +2,7 @@
 
 import unittest
 
-from shell_emulator.parser import ParseError, parse
+from shell_emulator.parse import ParseError, parse
 
 
 class ParseTest(unittest.TestCase):
