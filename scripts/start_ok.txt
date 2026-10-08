@@ -1,0 +1,5 @@
+ls -l
+cd "My Documents"
+ls 'a b' c\ d
+conf-dump
+exit

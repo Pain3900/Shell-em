@@ -6,6 +6,7 @@
 
 MAX_EXIT_ARGS = 1
 EXIT_CODE_MODULO = 256
+NOT_SET = "(not set)"
 
 
 class CommandError(Exception):
@@ -25,6 +26,15 @@ class ExitRequest(Exception):
         self.code = code
 
 
+def format_config(config):
+    """Вернуть параметры эмулятора в виде строк ``ключ=значение``."""
+    lines = []
+    for key, value in config.items():
+        shown = NOT_SET if value is None else value
+        lines.append(f"{key}={shown}")
+    return lines
+
+
 def stub(name, args):
     """Сформировать вывод команды-заглушки: имя и аргументы."""
     return f"{name}: args={args!r}"
@@ -40,6 +50,17 @@ def cmd_cd(shell, args):
     """Заглушка команды ``cd``: выводит имя и аргументы."""
     del shell
     return stub("cd", args)
+
+
+def cmd_conf_dump(shell, args):
+    """Команда ``conf-dump``: вывести параметры эмулятора.
+
+    Raises:
+        CommandError: если переданы аргументы.
+    """
+    if args:
+        raise CommandError("too many arguments")
+    return "\n".join(format_config(shell.config))
 
 
 def cmd_exit(shell, args):
@@ -66,5 +87,6 @@ def cmd_exit(shell, args):
 COMMANDS = {
     "ls": cmd_ls,
     "cd": cmd_cd,
+    "conf-dump": cmd_conf_dump,
     "exit": cmd_exit,
 }

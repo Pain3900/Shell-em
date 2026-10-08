@@ -26,15 +26,17 @@ def current_host():
 
 
 class Shell:
-    """Интерактивная оболочка с приглашением ``user@host:~$``."""
+    """Оболочка с приглашением ``user@host:~$``."""
 
-    def __init__(self, stdout=None, stderr=None):
+    def __init__(self, config=None, stdout=None, stderr=None):
         """Создать оболочку.
 
         Args:
+            config: параметры эмулятора (словарь ключ -> значение).
             stdout: поток для обычного вывода (по умолчанию sys.stdout).
             stderr: поток для ошибок (по умолчанию sys.stderr).
         """
+        self.config = config if config is not None else {}
         self.stdout = stdout or sys.stdout
         self.stderr = stderr or sys.stderr
         self.user = current_user()
@@ -48,10 +50,14 @@ class Shell:
 
     def error(self, message):
         """Вывести сообщение об ошибке в поток ошибок."""
+        self.stdout.flush()
         print(f"{SHELL_NAME}: {message}", file=self.stderr)
 
     def execute(self, line):
         """Разобрать и выполнить одну командную строку.
+
+        Returns:
+            True, если команда выполнена без ошибок, иначе False.
 
         Raises:
             ExitRequest: если пользователь вызвал ``exit``.
@@ -60,21 +66,49 @@ class Shell:
             tokens = parse(line)
         except ParseError as exc:
             self.error(f"syntax error: {exc}")
-            return
+            return False
         if not tokens:
-            return
+            return True
         name, args = tokens[0], tokens[1:]
         handler = self.commands.get(name)
         if handler is None:
             self.error(f"{name}: command not found")
-            return
+            return False
         try:
             output = handler(self, args)
         except CommandError as exc:
             self.error(f"{name}: {exc}")
-            return
+            return False
         if output is not None:
             print(output, file=self.stdout)
+        return True
+
+    def run_script(self, path):
+        """Выполнить стартовый скрипт, остановившись на первой ошибке.
+
+        Каждая команда печатается вместе с приглашением, затем её вывод,
+        как будто её ввёл пользователь. Пустые строки пропускаются.
+
+        Returns:
+            True, если весь скрипт выполнен без ошибок, иначе False.
+
+        Raises:
+            ExitRequest: если в скрипте встретилась команда ``exit``.
+        """
+        try:
+            with open(path, encoding="utf-8") as file:
+                lines = file.read().splitlines()
+        except OSError as exc:
+            self.error(f"script: cannot open '{path}': {exc.strerror}")
+            return False
+        for number, line in enumerate(lines, start=1):
+            if not line.strip():
+                continue
+            print(self.prompt() + line, file=self.stdout)
+            if not self.execute(line):
+                self.error(f"script: error at line {number}, stopped")
+                return False
+        return True
 
     def read_line(self):
         """Прочитать строку ввода; вернуть ``None`` при EOF (Ctrl+D)."""
