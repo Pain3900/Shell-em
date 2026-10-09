@@ -4,7 +4,7 @@ import argparse
 import importlib.util
 import sys
 
-from shell_emulator.commands import ExitRequest, format_config
+from shell_emulator.commands import format_config
 from shell_emulator.shell import Shell
 
 DEBUG_PREFIX = "[debug] "
@@ -39,7 +39,7 @@ def main(argv=None):
     if args.script is not None:
         try:
             shell.run_script(args.script)
-        except ExitRequest as request:
+        except SystemExit as request:
             return request.code
     return shell.run()
 

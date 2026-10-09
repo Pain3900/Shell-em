@@ -4,7 +4,7 @@ import getpass
 import socket
 import sys
 
-from shell_emulator.commands import COMMANDS, CommandError, ExitRequest
+from shell_emulator.commands import COMMANDS, CommandError
 from shell_emulator.parse import ParseError, parse
 
 SHELL_NAME = "shell"
@@ -60,7 +60,7 @@ class Shell:
             True, если команда выполнена без ошибок, иначе False.
 
         Raises:
-            ExitRequest: если пользователь вызвал ``exit``.
+            SystemExit: если пользователь вызвал ``exit``.
         """
         try:
             tokens = parse(line)
@@ -93,7 +93,7 @@ class Shell:
             True, если весь скрипт выполнен без ошибок, иначе False.
 
         Raises:
-            ExitRequest: если в скрипте встретилась команда ``exit``.
+            SystemExit: если в скрипте встретилась команда ``exit``.
         """
         try:
             with open(path, encoding="utf-8") as file:
@@ -128,5 +128,5 @@ class Shell:
                 self.execute(line)
             except KeyboardInterrupt:
                 print(file=self.stdout)
-            except ExitRequest as request:
+            except SystemExit as request:
                 return request.code

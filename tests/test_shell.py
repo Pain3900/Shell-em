@@ -6,7 +6,6 @@ import tempfile
 import unittest
 from unittest import mock
 
-from shell_emulator.commands import ExitRequest
 from shell_emulator.shell import Shell
 
 
@@ -53,13 +52,13 @@ class ShellTest(unittest.TestCase):
 
     def test_exit_default_code(self):
         """exit без аргументов завершает работу с кодом 0."""
-        with self.assertRaises(ExitRequest) as ctx:
+        with self.assertRaises(SystemExit) as ctx:
             self.shell.execute("exit")
         self.assertEqual(ctx.exception.code, 0)
 
     def test_exit_with_code(self):
         """exit N завершает работу с кодом N."""
-        with self.assertRaises(ExitRequest) as ctx:
+        with self.assertRaises(SystemExit) as ctx:
             self.shell.execute("exit 3")
         self.assertEqual(ctx.exception.code, 3)
 
@@ -160,7 +159,7 @@ class ScriptTest(unittest.TestCase):
     def test_script_exit(self):
         """Команда exit в скрипте завершает эмулятор."""
         path = self.write_script("ls a\nexit 2\nls b\n")
-        with self.assertRaises(ExitRequest) as ctx:
+        with self.assertRaises(SystemExit) as ctx:
             self.shell.run_script(path)
         self.assertEqual(ctx.exception.code, 2)
 

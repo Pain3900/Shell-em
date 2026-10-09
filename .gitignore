@@ -13,7 +13,6 @@ dist/
 *.tar.gz
 
 # Редакторы и ОС
-../.idea/
 .vscode/
 *.swp
 .DS_Store
