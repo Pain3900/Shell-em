@@ -1,0 +1,21 @@
+{
+  "type": "dir",
+  "children": {
+    "motd": {
+      "type": "file",
+      "data": "V2VsY29tZSB0byBzaGVsbCBlbXVsYXRvciEKVkZTOiBzZXZlcmFsIGZpbGVzIGluIHJvb3QuCg=="
+    },
+    "readme.txt": {
+      "type": "file",
+      "data": "VGhpcyBWRlMgY29udGFpbnMgc2V2ZXJhbCBmaWxlcy4K"
+    },
+    "notes.txt": {
+      "type": "file",
+      "data": "bGluZSAxCmxpbmUgMgpsaW5lIDMK"
+    },
+    "logo.bin": {
+      "type": "file",
+      "data": "iVBORw0KGgoA/w=="
+    }
+  }
+}

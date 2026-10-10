@@ -1,0 +1,8 @@
+{
+  "type": "dir",
+  "children": {
+    "motd": {
+      "type": "folder"
+    }
+  }
+}

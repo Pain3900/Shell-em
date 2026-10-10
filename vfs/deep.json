@@ -1,0 +1,64 @@
+{
+  "type": "dir",
+  "children": {
+    "motd": {
+      "type": "file",
+      "data": "V2VsY29tZSB0byBzaGVsbCBlbXVsYXRvciEKVkZTOiBuZXN0ZWQgZGlyZWN0b3JpZXMuCg=="
+    },
+    "home": {
+      "type": "dir",
+      "children": {
+        "user": {
+          "type": "dir",
+          "children": {
+            "docs": {
+              "type": "dir",
+              "children": {
+                "report.txt": {
+                  "type": "file",
+                  "data": "UXVhcnRlcmx5IHJlcG9ydAo="
+                },
+                "old": {
+                  "type": "dir",
+                  "children": {
+                    "draft.txt": {
+                      "type": "file",
+                      "data": "Zmlyc3QgZHJhZnQK"
+                    }
+                  }
+                }
+              }
+            },
+            "photo.bin": {
+              "type": "file",
+              "data": "AAECAwQFBgcICQoLDA0ODw=="
+            }
+          }
+        }
+      }
+    },
+    "etc": {
+      "type": "dir",
+      "children": {
+        "config.txt": {
+          "type": "file",
+          "data": "ZGVidWc9dHJ1ZQo="
+        }
+      }
+    },
+    "var": {
+      "type": "dir",
+      "children": {
+        "log": {
+          "type": "dir",
+          "children": {
+            "system.log": {
+              "type": "file",
+              "data": "c3lzdGVtIHN0YXJ0ZWQK"
+            }
+          }
+        }
+      }
+    }
+  }
+}

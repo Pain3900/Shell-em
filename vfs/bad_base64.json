@@ -1,0 +1,9 @@
+{
+  "type": "dir",
+  "children": {
+    "motd": {
+      "type": "file",
+      "data": "not base64!"
+    }
+  }
+}

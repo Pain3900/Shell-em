@@ -42,6 +42,7 @@ class Shell:
         self.user = current_user()
         self.host = current_host()
         self.cwd = HOME_MARK
+        self.vfs = None
         self.commands = dict(COMMANDS)
 
     def prompt(self):
