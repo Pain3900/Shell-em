@@ -13,7 +13,8 @@
 4. Этап 2. Конфигурация
 5. Этап 3. VFS
 6. Этап 4. Основные команды
-7. Сводная таблица команд
+7. Этап 5. Дополнительные команды
+8. Сводная таблица команд
 
 ## 1. Сборка и запуск
 
@@ -188,7 +189,7 @@ script=scripts/start_ok.txt
 | `vfs/bad_type.json` | неизвестный тип узла |
 | `vfs/bad_base64.json` | данные файла не в base64 |
 
-Структура `vfs/deep.json`, на которой построены примеры этапа 4:
+Структура `vfs/deep.json`, на которой построены примеры этапов 4 и 5:
 
 ```
 /
@@ -292,7 +293,65 @@ system started
 клавиатуры, эмулятор печатает каждую введённую команду после
 приглашения, и вывод выглядит как диалог.
 
-## 7. Сводная таблица команд
+## 7. Этап 5. Дополнительные команды
+
+Команды `cp` и `chmod` изменяют VFS только в памяти; JSON-файл на диске
+не меняется, после перезапуска эмулятора VFS снова загружается
+в исходном виде.
+
+### cp [-r] ИСТОЧНИК НАЗНАЧЕНИЕ
+
+Копирует файл. Если назначение — существующий каталог, копия
+создаётся внутри него с тем же именем. Каталоги копируются только
+с ключом `-r` (вместе со всем содержимым).
+
+```
+student@laptop:/home/user$ cp docs/report.txt report_copy.txt
+student@laptop:/home/user$ cp -r docs docs_backup
+student@laptop:/home/user$ ls
+docs/
+docs_backup/
+photo.bin
+report_copy.txt
+```
+
+### chmod РЕЖИМ ПУТЬ
+
+Меняет права доступа файла или каталога. Режим задаётся
+в восьмеричной записи из трёх цифр, например `755` или `600`.
+
+```
+student@laptop:/home/user$ chmod 600 report_copy.txt
+student@laptop:/home/user$ ls -l
+drwxr-xr-x docs/
+drwxr-xr-x docs_backup/
+-rw-r--r-- photo.bin
+-rw------- report_copy.txt
+```
+
+### Обработка ошибок
+
+| Ввод | Сообщение |
+|------|-----------|
+| `cp a.txt` | `shell: cp: missing destination file operand` |
+| `cp nowhere b.txt` | `shell: cp: nowhere: No such file or directory` |
+| `cp docs x` | `shell: cp: -r not specified; omitting directory 'docs'` |
+| `cp a.txt nowhere/b.txt` | `shell: cp: nowhere/b.txt: No such file or directory` |
+| `cp -r docs docs/old` | `shell: cp: cannot copy a directory, 'docs', into itself` |
+| `cp a.txt .` | `shell: cp: 'a.txt' and destination are the same file` |
+| `chmod 600` | `shell: chmod: missing operand` |
+| `chmod abc motd` | `shell: chmod: invalid mode: 'abc'` |
+| `chmod 600 nowhere` | `shell: chmod: nowhere: No such file or directory` |
+
+### Скрипты для проверки
+
+| Файл | Что проверяет |
+|------|---------------|
+| `scripts/start_stage5.txt` | стартовый скрипт: все режимы `cp`, `chmod` |
+| `scripts/stage5_errors.txt` | все ошибки команд этапа 5 |
+| `scripts/test_stage5.sh` | запуск эмулятора с `vfs/deep.json`: стартовый скрипт, затем ошибки из `stage5_errors.txt`, затем повторный запуск, показывающий, что VFS загружается в исходном виде |
+
+## 8. Сводная таблица команд
 
 | Команда | Описание | Этап |
 |---------|----------|------|
@@ -302,3 +361,5 @@ system started
 | `conf-dump` | параметры эмулятора `ключ=значение` | 2 |
 | `head [-n ЧИСЛО] ФАЙЛ` | первые строки файла | 4 |
 | `clear` | очистка экрана | 4 |
+| `cp [-r] ИСТОЧНИК НАЗНАЧЕНИЕ` | копирование файла или каталога | 5 |
+| `chmod РЕЖИМ ПУТЬ` | изменение прав доступа | 5 |

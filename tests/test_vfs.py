@@ -6,8 +6,9 @@ import os
 import tempfile
 import unittest
 
-from shell_emulator.vfs import (VfsDir, VfsError, VfsFile, load_vfs,
-                                mode_string, read_motd, vfs_stats)
+from shell_emulator.vfs import (VfsDir, VfsError, VfsFile, copy_node,
+                                is_inside, load_vfs, mode_string,
+                                read_motd, vfs_stats)
 
 
 def encode(data):
@@ -126,6 +127,17 @@ class LoadVfsTest(unittest.TestCase):
             bad = {"type": "file", "data": "", "mode": mode}
             with self.assertRaisesRegex(VfsError, "mode"):
                 load_vfs(self.write_vfs(dir_node({"x": bad})))
+
+    def test_copy_node_is_deep(self):
+        """copy_node создаёт независимую копию со всем содержимым."""
+        root = load_vfs(self.write_vfs(dir_node({"a": dir_node({
+            "b.txt": file_node(b"text")})})))
+        copy = copy_node(root.children["a"])
+        copy.children["b.txt"].data = b"changed"
+        self.assertEqual(root.children["a"].children["b.txt"].data, b"text")
+        self.assertIs(copy.children["b.txt"].parent, copy)
+        self.assertTrue(is_inside(copy.children["b.txt"], copy))
+        self.assertFalse(is_inside(root, copy))
 
 
 if __name__ == "__main__":
