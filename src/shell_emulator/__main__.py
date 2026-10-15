@@ -37,7 +37,7 @@ def start_vfs(shell, path):
         True, если VFS загружена, иначе False (ошибка уже выведена).
     """
     try:
-        shell.vfs = load_vfs(path)
+        shell.set_vfs(load_vfs(path))
     except VfsError as exc:
         shell.error(f"vfs: {exc}")
         return False
@@ -57,7 +57,7 @@ def main(argv=None):
     for line in format_config(config):
         print(DEBUG_PREFIX + line)
     enable_line_editing()
-    shell = Shell(config=config)
+    shell = Shell(config=config, echo_input=not sys.stdin.isatty())
     if args.vfs is not None and not start_vfs(shell, args.vfs):
         return VFS_ERROR_CODE
     if args.script is not None:

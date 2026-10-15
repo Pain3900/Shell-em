@@ -1,8 +1,7 @@
 ls
-ls -l /home/user
-cd "My Documents"
-cd 'a b' c\ d
-ls a"b c"d ""
+ls -l /
+cd /
+ls "."
 conf-dump
 exit 1 2
 ls "this line is not executed"

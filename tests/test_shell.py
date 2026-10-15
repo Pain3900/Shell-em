@@ -21,19 +21,19 @@ class ShellTest(unittest.TestCase):
         self.shell.host = "pc"
 
     def test_prompt(self):
-        """Приглашение имеет вид user@host:~$."""
-        self.assertEqual(self.shell.prompt(), "student@pc:~$ ")
+        """Приглашение имеет вид user@host:/$ (пустая VFS)."""
+        self.assertEqual(self.shell.prompt(), "student@pc:/$ ")
 
-    def test_ls_stub(self):
-        """Заглушка ls выводит имя и аргументы."""
-        self.shell.execute('ls -l "my dir"')
-        self.assertEqual(self.out.getvalue(),
-                         "ls: args=['-l', 'my dir']\n")
+    def test_empty_vfs(self):
+        """Без --vfs используется пустая VFS: ls ничего не выводит."""
+        self.assertTrue(self.shell.execute("ls"))
+        self.assertEqual(self.out.getvalue(), "")
 
-    def test_cd_stub(self):
-        """Заглушка cd выводит имя и аргументы."""
-        self.shell.execute("cd /home")
-        self.assertEqual(self.out.getvalue(), "cd: args=['/home']\n")
+    def test_quoted_path(self):
+        """Путь в кавычках передаётся команде одним аргументом."""
+        self.shell.execute('cd "My Documents"')
+        self.assertIn("cd: My Documents: No such file or directory",
+                      self.err.getvalue())
 
     def test_unknown_command(self):
         """Неизвестная команда даёт сообщение об ошибке."""
@@ -85,9 +85,17 @@ class ShellTest(unittest.TestCase):
         with mock.patch("builtins.input", side_effect=EOFError):
             self.assertEqual(self.shell.run(), 0)
 
+    def test_echo_input(self):
+        """При вводе не с клавиатуры команды печатаются в вывод."""
+        self.shell.echo_input = True
+        lines = iter(["ls", "exit"])
+        with mock.patch("builtins.input", lambda _: next(lines)):
+            self.shell.run()
+        self.assertEqual(self.out.getvalue(), "ls\nexit\n")
+
     def test_execute_status(self):
         """execute возвращает True при успехе и False при ошибке."""
-        self.assertTrue(self.shell.execute("ls a"))
+        self.assertTrue(self.shell.execute("ls"))
         self.assertFalse(self.shell.execute("foo"))
         self.assertFalse(self.shell.execute('ls "abc'))
 
@@ -136,17 +144,16 @@ class ScriptTest(unittest.TestCase):
 
     def test_script_ok(self):
         """Команды скрипта печатаются с приглашением и выполняются."""
-        path = self.write_script('ls -l\n\ncd "My Documents"\n')
+        path = self.write_script('ls -l\n\ncd "/"\nconf-dump\n')
         self.assertTrue(self.shell.run_script(path))
         self.assertEqual(self.out.getvalue(),
-                         "student@pc:~$ ls -l\n"
-                         "ls: args=['-l']\n"
-                         'student@pc:~$ cd "My Documents"\n'
-                         "cd: args=['My Documents']\n")
+                         "student@pc:/$ ls -l\n"
+                         'student@pc:/$ cd "/"\n'
+                         "student@pc:/$ conf-dump\n")
 
     def test_script_stops_at_first_error(self):
         """Скрипт останавливается на первой ошибке."""
-        path = self.write_script("ls a\nfoo\nls b\n")
+        path = self.write_script("ls\nfoo\nls b\n")
         self.assertFalse(self.shell.run_script(path))
         self.assertIn("error at line 2", self.err.getvalue())
         self.assertNotIn("ls b", self.out.getvalue())
@@ -158,7 +165,7 @@ class ScriptTest(unittest.TestCase):
 
     def test_script_exit(self):
         """Команда exit в скрипте завершает эмулятор."""
-        path = self.write_script("ls a\nexit 2\nls b\n")
+        path = self.write_script("ls\nexit 2\nls b\n")
         with self.assertRaises(SystemExit) as ctx:
             self.shell.run_script(path)
         self.assertEqual(ctx.exception.code, 2)

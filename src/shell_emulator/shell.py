@@ -6,9 +6,10 @@ import sys
 
 from shell_emulator.commands import COMMANDS, CommandError
 from shell_emulator.parse import ParseError, parse
+from shell_emulator.vfs import VfsDir, node_path
 
 SHELL_NAME = "shell"
-HOME_MARK = "~"
+ROOT_NAME = "/"
 DEFAULT_USER = "user"
 
 
@@ -26,28 +27,37 @@ def current_host():
 
 
 class Shell:
-    """Оболочка с приглашением ``user@host:~$``."""
+    """Оболочка с приглашением ``user@host:/путь$``."""
 
-    def __init__(self, config=None, stdout=None, stderr=None):
-        """Создать оболочку.
+    def __init__(self, config=None, stdout=None, stderr=None,
+                 echo_input=False):
+        """Создать оболочку с пустой VFS (только корень ``/``).
 
         Args:
             config: параметры эмулятора (словарь ключ -> значение).
             stdout: поток для обычного вывода (по умолчанию sys.stdout).
             stderr: поток для ошибок (по умолчанию sys.stderr).
+            echo_input: печатать введённые команды; нужно, когда ввод
+                идёт не с клавиатуры, а из файла или конвейера.
         """
         self.config = config if config is not None else {}
         self.stdout = stdout or sys.stdout
         self.stderr = stderr or sys.stderr
+        self.echo_input = echo_input
         self.user = current_user()
         self.host = current_host()
-        self.cwd = HOME_MARK
-        self.vfs = None
+        self.vfs = VfsDir(ROOT_NAME)
+        self.cwd = self.vfs
         self.commands = dict(COMMANDS)
 
+    def set_vfs(self, root):
+        """Подключить VFS ``root``; текущим каталогом становится корень."""
+        self.vfs = root
+        self.cwd = root
+
     def prompt(self):
-        """Сформировать приглашение к вводу по данным ОС."""
-        return f"{self.user}@{self.host}:{self.cwd}$ "
+        """Сформировать приглашение: данные ОС и текущий каталог VFS."""
+        return f"{self.user}@{self.host}:{node_path(self.cwd)}$ "
 
     def error(self, message):
         """Вывести сообщение об ошибке в поток ошибок."""
@@ -114,10 +124,13 @@ class Shell:
     def read_line(self):
         """Прочитать строку ввода; вернуть ``None`` при EOF (Ctrl+D)."""
         try:
-            return input(self.prompt())
+            line = input(self.prompt())
         except EOFError:
             print("exit", file=self.stdout)
             return None
+        if self.echo_input:
+            print(line, file=self.stdout)
+        return line
 
     def run(self):
         """Запустить REPL и вернуть код завершения."""

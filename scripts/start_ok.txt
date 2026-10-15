@@ -1,5 +1,5 @@
 ls -l
-cd "My Documents"
-ls 'a b' c\ d
+ls "readme.txt"
+cd /
 conf-dump
 exit
