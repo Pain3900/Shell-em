@@ -1,0 +1,15 @@
+cd /home/user
+ls -l
+cp docs/report.txt report_copy.txt
+cp report_copy.txt /etc
+cp /etc/config.txt report_copy.txt
+head report_copy.txt
+cp -r docs docs_backup
+ls docs_backup
+ls docs_backup/old
+chmod 600 report_copy.txt
+chmod 700 docs_backup
+chmod 644 /etc/report_copy.txt
+ls -l
+ls -l /etc
+exit

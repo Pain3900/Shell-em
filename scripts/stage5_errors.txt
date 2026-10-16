@@ -1,0 +1,16 @@
+cd /home/user
+cp
+cp photo.bin
+cp a b c
+cp -x a b
+cp nowhere b.txt
+cp docs x
+cp photo.bin nowhere/b.txt
+cp -r docs docs/old
+cp photo.bin .
+chmod
+chmod 600
+chmod 600 a b
+chmod abc photo.bin
+chmod 999 photo.bin
+chmod 600 nowhere

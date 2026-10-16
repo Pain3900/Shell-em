@@ -199,3 +199,22 @@ def mode_string(node):
     letters = PERMISSION_LETTERS * MODE_DIGITS
     return kind + "".join(letter if bit == "1" else "-"
                           for letter, bit in zip(letters, bits))
+
+
+def copy_node(node):
+    """Создать глубокую копию узла со всем содержимым (в памяти)."""
+    if isinstance(node, VfsFile):
+        return VfsFile(node.name, node.data, node.mode)
+    copy = VfsDir(node.name, node.mode)
+    for child in node.children.values():
+        copy.add(copy_node(child))
+    return copy
+
+
+def is_inside(node, ancestor):
+    """Проверить, совпадает ли ``node`` с ``ancestor`` или лежит в нём."""
+    while node is not None:
+        if node is ancestor:
+            return True
+        node = node.parent
+    return False

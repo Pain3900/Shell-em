@@ -4,7 +4,8 @@
 для вывода (или ``None``) либо возбуждает :class:`CommandError`.
 """
 
-from shell_emulator.vfs import VfsDir, mode_string, resolve
+from shell_emulator.vfs import (VfsDir, copy_node, is_inside, mode_string,
+                                resolve)
 
 MAX_EXIT_ARGS = 1
 MAX_PATH_ARGS = 1
@@ -16,6 +17,14 @@ LINES_OPTION = "-n"
 LINES_OPTION_ARGS = 2
 DEFAULT_HEAD_LINES = 10
 CLEAR_SCREEN = "\033[H\033[2J"
+RECURSIVE_FLAG = "r"
+CP_OPERANDS = 2
+CHMOD_OPERANDS = 2
+MODE_DIGITS = 3
+OCTAL_DIGITS = "01234567"
+OCTAL_BASE = 8
+SEPARATOR = "/"
+SPECIAL_NAMES = ("", ".", "..")
 
 
 class CommandError(Exception):
@@ -153,6 +162,105 @@ def cmd_clear(shell, args):
     return None
 
 
+def parse_cp_args(args):
+    """Разобрать ``cp [-r] ИСТОЧНИК НАЗНАЧЕНИЕ``.
+
+    Returns:
+        Кортеж (флаг -r, путь источника, путь назначения).
+    """
+    flags, operands = split_options(args)
+    unknown = sorted(flags - {RECURSIVE_FLAG})
+    if unknown:
+        raise CommandError(f"invalid option -- '{unknown[0]}'")
+    if not operands:
+        raise CommandError("missing file operand")
+    if len(operands) < CP_OPERANDS:
+        raise CommandError("missing destination file operand")
+    if len(operands) > CP_OPERANDS:
+        raise CommandError("too many arguments")
+    return RECURSIVE_FLAG in flags, operands[0], operands[1]
+
+
+def cp_target(shell, source, path):
+    """Найти каталог и имя для копии по пути назначения.
+
+    Если назначение - существующий каталог, копия кладётся в него
+    под именем источника; иначе последняя часть пути - новое имя.
+    """
+    dest = resolve(shell.vfs, shell.cwd, path)
+    if isinstance(dest, VfsDir):
+        return dest, source.name
+    dir_path, _, name = path.rpartition(SEPARATOR)
+    if path.startswith(SEPARATOR) and not dir_path:
+        dir_path = SEPARATOR
+    directory = resolve(shell.vfs, shell.cwd, dir_path or ".")
+    if not isinstance(directory, VfsDir) or name in SPECIAL_NAMES:
+        raise CommandError(f"{path}: No such file or directory")
+    return directory, name
+
+
+def check_cp_target(source, directory, name, source_path):
+    """Проверить, что копию можно положить в ``directory/name``."""
+    old = directory.children.get(name)
+    if old is source:
+        raise CommandError(f"'{source_path}' and destination "
+                           "are the same file")
+    if isinstance(old, VfsDir):
+        raise CommandError(f"cannot overwrite directory '{name}'")
+    if old is not None and isinstance(source, VfsDir):
+        raise CommandError(f"cannot overwrite non-directory '{name}' "
+                           "with directory")
+    if isinstance(source, VfsDir) and is_inside(directory, source):
+        raise CommandError(f"cannot copy a directory, '{source_path}', "
+                           "into itself")
+
+
+def cmd_cp(shell, args):
+    """Команда ``cp [-r] ИСТОЧНИК НАЗНАЧЕНИЕ``: копирование в памяти.
+
+    Raises:
+        CommandError: неверные аргументы, нет источника или назначения,
+            каталог без -r, копирование каталога в самого себя.
+    """
+    recursive, source_path, dest_path = parse_cp_args(args)
+    source = find_node(shell, source_path)
+    if isinstance(source, VfsDir) and not recursive:
+        raise CommandError(f"-r not specified; omitting directory "
+                           f"'{source_path}'")
+    directory, name = cp_target(shell, source, dest_path)
+    check_cp_target(source, directory, name, source_path)
+    copy = copy_node(source)
+    copy.name = name
+    directory.add(copy)
+    return None
+
+
+def parse_mode(text):
+    """Преобразовать права из трёх восьмеричных цифр в число.
+
+    Raises:
+        CommandError: если это не три восьмеричные цифры.
+    """
+    if len(text) != MODE_DIGITS or any(c not in OCTAL_DIGITS for c in text):
+        raise CommandError(f"invalid mode: '{text}'")
+    return int(text, OCTAL_BASE)
+
+
+def cmd_chmod(shell, args):
+    """Команда ``chmod РЕЖИМ ПУТЬ``: изменить права узла в памяти.
+
+    Raises:
+        CommandError: неверное число аргументов, права или путь.
+    """
+    if len(args) < CHMOD_OPERANDS:
+        raise CommandError("missing operand")
+    if len(args) > CHMOD_OPERANDS:
+        raise CommandError("too many arguments")
+    mode = parse_mode(args[0])
+    find_node(shell, args[1]).mode = mode
+    return None
+
+
 def cmd_conf_dump(shell, args):
     """Команда ``conf-dump``: вывести параметры эмулятора.
 
@@ -190,6 +298,8 @@ COMMANDS = {
     "cd": cmd_cd,
     "head": cmd_head,
     "clear": cmd_clear,
+    "cp": cmd_cp,
+    "chmod": cmd_chmod,
     "conf-dump": cmd_conf_dump,
     "exit": cmd_exit,
 }
