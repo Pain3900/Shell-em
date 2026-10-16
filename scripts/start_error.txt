@@ -1,4 +1,4 @@
 ls -l
-cd /home
+cd /
 unknown_command
 ls "this line is not executed"

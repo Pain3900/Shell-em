@@ -7,7 +7,7 @@ import tempfile
 import unittest
 
 from shell_emulator.vfs import (VfsDir, VfsError, VfsFile, load_vfs,
-                                read_motd, vfs_stats)
+                                mode_string, read_motd, vfs_stats)
 
 
 def encode(data):
@@ -109,6 +109,23 @@ class LoadVfsTest(unittest.TestCase):
         """Поле children должно быть JSON-объектом."""
         with self.assertRaisesRegex(VfsError, "children"):
             load_vfs(self.write_vfs({"type": "dir", "children": []}))
+
+    def test_mode(self):
+        """Права берутся из поля mode, иначе 755 и 644 по умолчанию."""
+        root = load_vfs(self.write_vfs(dir_node({
+            "a.txt": file_node(b"a"),
+            "b.sh": {"type": "file", "data": "", "mode": "751"},
+        })))
+        self.assertEqual(mode_string(root), "drwxr-xr-x")
+        self.assertEqual(mode_string(root.children["a.txt"]), "-rw-r--r--")
+        self.assertEqual(mode_string(root.children["b.sh"]), "-rwxr-x--x")
+
+    def test_bad_mode(self):
+        """Права не из трёх восьмеричных цифр - ошибка."""
+        for mode in ("999", "75", 755):
+            bad = {"type": "file", "data": "", "mode": mode}
+            with self.assertRaisesRegex(VfsError, "mode"):
+                load_vfs(self.write_vfs(dir_node({"x": bad})))
 
 
 if __name__ == "__main__":

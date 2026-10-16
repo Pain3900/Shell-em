@@ -1,0 +1,18 @@
+clear
+ls
+ls -l
+ls home/user
+ls -l /home/user/docs
+ls /etc/config.txt
+cd home/user/docs
+ls
+cd ..
+cd ./docs/old
+cd ../../../..
+cd "/var/log"
+head system.log
+head -n 1 /var/log/system.log
+head -n 0 /motd
+cd
+head motd
+exit

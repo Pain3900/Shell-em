@@ -54,7 +54,7 @@
           "children": {
             "system.log": {
               "type": "file",
-              "data": "c3lzdGVtIHN0YXJ0ZWQK"
+              "data": "c3lzdGVtIHN0YXJ0ZWQKZXZlbnQgMgpldmVudCAzCmV2ZW50IDQKZXZlbnQgNQpldmVudCA2CmV2ZW50IDcKZXZlbnQgOApldmVudCA5CmV2ZW50IDEwCmV2ZW50IDExCmV2ZW50IDEyCg=="
             }
           }
         }

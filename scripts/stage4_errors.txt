@@ -1,0 +1,12 @@
+ls nowhere
+ls -x
+ls home etc
+cd motd
+cd nowhere
+cd a b
+head
+head /home
+head -n abc motd
+head -n
+head nowhere
+clear now
