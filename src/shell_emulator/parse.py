@@ -20,7 +20,7 @@ class ParseError(Exception):
     """Синтаксическая ошибка в командной строке."""
 
 
-class _Tokenizer:
+class Tokenizer:
     """Посимвольный разборщик одной командной строки."""
 
     def __init__(self, line):
@@ -120,4 +120,4 @@ def parse(line):
         ParseError: если кавычка не закрыта или строка
             заканчивается обратным слешем.
     """
-    return _Tokenizer(line).run()
+    return Tokenizer(line).run()
